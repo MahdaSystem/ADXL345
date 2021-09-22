@@ -237,7 +237,7 @@ int main(void)
   Handler.PlatformI2CDeInit  = ADXL345_Platform_DeInit;
   Handler.PlatformI2CSend    = ADXL345_Platform_Send;
   Handler.PlatformI2CReceive = ADXL345_Platform_Receive;
-
+  Handler.InterruptCallback  = InterruptCallback;
   ADXL345_Init(&Handler);
   // Some Other Configurations
 
