@@ -256,16 +256,16 @@ ADXL345_Get_TapConfig(ADXL345_Handler_t *Handler,
 }
 
 /**
- * @brief  Get tap status
+ * @brief  Get activity and tap status
  * @param  Handler: Pointer to handler
- * @param  Status: Pointer to tap status
+ * @param  Status: Pointer to activity and tap status
  * @retval ADXL345_Result_t
  *         - ADXL345_OK: Operation was successful.
  *         - ADXL345_FAIL: Failed to send or receive data.
  */
 ADXL345_Result_t
-ADXL345_Get_TapStatus(ADXL345_Handler_t *Handler,
-                      ADXL345_TapStatus_t *Status)
+ADXL345_Get_ActTapStatus(ADXL345_Handler_t *Handler,
+                         ADXL345_ActTapStatus_t *Status)
 {
   uint8_t Reg = 0;
 
