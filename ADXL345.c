@@ -680,6 +680,8 @@ ADXL345_Get_DataFormat(ADXL345_Handler_t *Handler,
 {
   uint8_t Reg = 0;
 
+  memset(DataFormat, 0, sizeof(ADXL345_DataFormat_t));
+
   if (ADXL345_ReadRegs(Handler,
                        ADXL345_REG_DATA_FORMAT, &Reg, 1) != ADXL345_OK)
     return ADXL345_FAIL;
@@ -857,10 +859,21 @@ ADXL345_ReadSamples(ADXL345_Handler_t *Handler,
                     ADXL345_Sample_t *Samples,
                     uint8_t SamplesBufferLen, uint8_t *ReadSamples)
 {
+  typedef union U16toI16_u
+  {
+    int16_t  I16;
+    uint16_t U16;
+  } U16toI16_t;
+  
+  const static int16_t TwosCompliment[4] = {64, 32, 16, 8};
+
   ADXL345_FifoConfig_t FifoConfig;
   ADXL345_DataFormat_t DataFormat;
   uint8_t Buffer[32 * 6];
   float Factor = 0.0f;
+  U16toI16_t RawX = {0};
+  U16toI16_t RawY = {0};
+  U16toI16_t RawZ = {0};
 
   ADXL345_Get_FifoConfig(Handler, &FifoConfig);
   ADXL345_Get_DataFormat(Handler, &DataFormat);
@@ -882,35 +895,37 @@ ADXL345_ReadSamples(ADXL345_Handler_t *Handler,
 
   for (uint8_t i = 0; i < (*ReadSamples); i++)
   {
-    Samples[i].RawX = (int16_t)(Buffer[1+i*6] << 8) | Buffer[0+i*6];
-    Samples[i].RawY = (int16_t)(Buffer[3+i*6] << 8) | Buffer[2+i*6];
-    Samples[i].RawZ = (int16_t)(Buffer[5+i*6] << 8) | Buffer[4+i*6];
+    RawX.U16 = (Buffer[1+i*6] << 8) | Buffer[0+i*6];
+    RawY.U16 = (Buffer[3+i*6] << 8) | Buffer[2+i*6];
+    RawZ.U16 = (Buffer[5+i*6] << 8) | Buffer[4+i*6];
 
     if (DataFormat.FullResolution)
     {
-      if (DataFormat.JustifyLeft)
+      if (DataFormat.JustifyLeft == 0)
       {
-        Samples[i].RawX = (Samples[i].RawX & 0x80) |
-                           ((Samples[i].RawX & 0x7F) >> (6 - DataFormat.Range));
-        Samples[i].RawY = (Samples[i].RawY & 0x80) |
-                           ((Samples[i].RawY & 0x7F) >> (6 - DataFormat.Range));
-        Samples[i].RawZ = (Samples[i].RawZ & 0x80) |
-                           ((Samples[i].RawZ & 0x7F) >> (6 - DataFormat.Range));
+        RawX.U16 <<= 6 - DataFormat.Range;
+        RawY.U16 <<= 6 - DataFormat.Range;
+        RawZ.U16 <<= 6 - DataFormat.Range;
       }
+
+      Samples[i].RawX = RawX.I16 / TwosCompliment[DataFormat.Range];
+      Samples[i].RawY = RawY.I16 / TwosCompliment[DataFormat.Range];
+      Samples[i].RawZ = RawZ.I16 / TwosCompliment[DataFormat.Range];
 
       Factor = 0.004f;
     }
     else
     {
-      if (DataFormat.JustifyLeft)
+      if (DataFormat.JustifyLeft == 0)
       {
-        Samples[i].RawX = (Samples[i].RawX & 0x80) |
-                           ((Samples[i].RawX & 0x7F) >> 6);
-        Samples[i].RawY = (Samples[i].RawY & 0x80) |
-                           ((Samples[i].RawY & 0x7F) >> 6);
-        Samples[i].RawZ = (Samples[i].RawZ & 0x80) |
-                           ((Samples[i].RawZ & 0x7F) >> 6);
+        RawX.U16 <<= 6;
+        RawY.U16 <<= 6;
+        RawZ.U16 <<= 6;
       }
+
+      Samples[i].RawX = RawX.I16 / TwosCompliment[ADXL345_RANGE_2G];
+      Samples[i].RawY = RawY.I16 / TwosCompliment[ADXL345_RANGE_2G];
+      Samples[i].RawZ = RawZ.I16 / TwosCompliment[ADXL345_RANGE_2G];
 
       switch (DataFormat.Range)
       {
@@ -931,7 +946,6 @@ ADXL345_ReadSamples(ADXL345_Handler_t *Handler,
         break;
       }
     }
-
     Samples[i].AccelX = (float)(Samples[i].RawX) * Factor;
     Samples[i].AccelY = (float)(Samples[i].RawY) * Factor;
     Samples[i].AccelZ = (float)(Samples[i].RawZ) * Factor;
