@@ -230,9 +230,9 @@ typedef struct ADXL345_InterruptConfig_s
  */
 typedef struct ADXL345_DataFormat_s
 {
-  ADXL345_Range_t Range;
-  uint8_t JustifyLeft;    // 1 => Justify Left
-  uint8_t FullResolution; // 1 => Full Resolution
+  ADXL345_Range_t Range   : 2;
+  uint8_t JustifyLeft     : 1; // 1 => Justify Left
+  uint8_t FullResolution  : 1; // 1 => Full Resolution
 } ADXL345_DataFormat_t;
 
 /**
@@ -240,9 +240,9 @@ typedef struct ADXL345_DataFormat_s
  */
 typedef struct ADXL345_FifoConfig_s
 {
-  uint8_t WatermarkSamples : 5;
-  ADXL345_TriggerPin_t Trigger;
-  ADXL345_Mode_t Mode;
+  uint8_t WatermarkSamples      : 5;
+  ADXL345_TriggerPin_t Trigger  : 1;
+  ADXL345_Mode_t Mode           : 2;
 } ADXL345_FifoConfig_t;
 
 /**
@@ -250,9 +250,9 @@ typedef struct ADXL345_FifoConfig_s
  */
 typedef struct ADXL345_FifoStatus_s
 {
-  uint8_t Entries : 6;
-  uint8_t Reserved : 1;
-  uint8_t Trigger : 1;
+  uint8_t Entries   : 6;
+  uint8_t Reserved  : 1;
+  uint8_t Trigger   : 1;
 } ADXL345_FifoStatus_t;
 
 /**
@@ -261,10 +261,10 @@ typedef struct ADXL345_FifoStatus_s
 typedef struct ADXL345_PowerControl_s
 {
   ADXL345_SleepFrequency_t Wakeup : 2;
-  uint8_t Sleep : 1;
-  uint8_t Measure : 1;
-  uint8_t AutoSleep : 1;
-  uint8_t Link : 1;
+  uint8_t Sleep                   : 1;
+  uint8_t Measure                 : 1;
+  uint8_t AutoSleep               : 1;
+  uint8_t Link                    : 1;
 } ADXL345_PowerControl_t;
 
 /**
