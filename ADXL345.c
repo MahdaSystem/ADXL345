@@ -331,7 +331,7 @@ ADXL345_Set_ActivityInactivity(ADXL345_Handler_t *Handler,
   if (ActivityInactivity->Control.ActivityCoupled)
     Buffer[3] |= 0x80;
   
-  return ADXL345_WriteRegs(Handler, ADXL345_REG_ACT_INACT_CTL, Buffer, 4);
+  return ADXL345_WriteRegs(Handler, ADXL345_REG_THRESH_ACT, Buffer, 4);
 }
 
 /**
